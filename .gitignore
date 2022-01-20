@@ -20,8 +20,8 @@
 .env*.local
 
 # cypress
-/cypress/screenshots
-/cypress/videos
+/src/cypress/screenshots
+/src/cypress/videos
 
 # coverage
 .nyc_output

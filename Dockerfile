@@ -32,56 +32,81 @@ ENV NEXT_PUBLIC_FEATURE_FLAG_GEDC_DASHBOARD $NEXT_PUBLIC_FEATURE_FLAG_GEDC_DASHB
 ENV NEXT_PUBLIC_ENVS_SHOW $NEXT_PUBLIC_ENVS_SHOW
 ENV NEXT_PUBLIC_ENVS_EDIT $NEXT_PUBLIC_ENVS_EDIT
 
-RUN apk update && apk add --no-cache \
-    build-base gcc bash git \
-    cairo-dev pango-dev jpeg-dev
 
-# Add app directory
-WORKDIR /usr/src/app
+# Install dependencies only when needed
+FROM node:14.17-alpine AS deps
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY package.json yarn.lock ./
+RUN apk update && apk add --no-cache git
+RUN yarn install --frozen-lockfile
 
-# Copy app folders
-COPY components ./components
-COPY constants ./constants
-COPY css ./css
-COPY hooks ./hooks
-COPY hoc ./hoc
-COPY layout ./layout
-COPY lib ./lib
-COPY modules ./modules
-COPY pages ./pages
-COPY public ./public
-COPY redactions ./redactions
-COPY selectors ./selectors
-COPY services ./services
-COPY server ./server
-COPY utils ./utils
-COPY test ./test
-COPY types ./types
-COPY scripts ./scripts
-# stop copying this folder when the user is not stored in the global state
-# (see https://github.com/resource-watch/resource-watch/blob/develop/pages/_app.jsx#L22)
-COPY cypress ./cypress
-
-# Copy single files
-COPY .babelrc .
-COPY .browserlistrc .
-COPY .env.test .
-COPY .env.production .
-COPY yarn.lock .
-COPY index.js .
-COPY next-env.d.ts .
-COPY next-sitemap.js .
-COPY next.config.js .
-COPY package.json .
-COPY postcss.config.js .
-COPY tailwind.config.js .
-COPY tsconfig.json .
-
-RUN yarn install --frozen-lockfile --production=false
-
+# Rebuild the source code only when needed
+FROM node:14.17-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 RUN yarn build
 
-COPY entrypoint.sh .
+# Production image, copy all the files and run next
+FROM node:14.17-alpine AS runner
+WORKDIR /app
+
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+
+COPY --from=builder /app/next.config.js ./
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/.browserlistrc ./
+COPY --from=builder /app/.env.test ./
+COPY --from=builder /app/.env.production ./
+COPY --from=builder /app/index.js ./
+COPY --from=builder /app/next-env.d.ts ./
+COPY --from=builder /app/next-sitemap.js ./
+COPY --from=builder /app/postcss.config.js ./
+COPY --from=builder /app/tailwind.config.js ./
+COPY --from=builder /app/tsconfig.json ./
+COPY --from=builder /app/entrypoint.sh ./
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+# RUN apk update && apk add --no-cache \
+#     build-base gcc bash git \
+#     cairo-dev pango-dev jpeg-dev
+
+# # Add app directory
+# WORKDIR /usr/src/app
+
+# # Copy app folders
+# COPY src ./src
+
+# Copy single files
+# COPY .babelrc .
+# COPY .browserlistrc .
+# COPY .env.test .
+# COPY .env.production .
+# COPY yarn.lock .
+# COPY index.js .
+# COPY next-env.d.ts .
+# COPY next-sitemap.js .
+# COPY next.config.js .
+# COPY package.json .
+# COPY postcss.config.js .
+# COPY tailwind.config.js .
+# COPY tsconfig.json .
+
+# RUN yarn install --frozen-lockfile --production=false
+
+# RUN yarn build
+
+# COPY entrypoint.sh .
 
 EXPOSE 3000
 

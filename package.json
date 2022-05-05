@@ -7,6 +7,14 @@
   "main": "index.js",
   "dependencies": {
     "@artsy/fresnel": "^1.5.0",
+    "@deck.gl/core": "8.7.8",
+    "@deck.gl/extensions": "8.7.8",
+    "@deck.gl/geo-layers": "8.7.8",
+    "@deck.gl/layers": "8.7.8",
+    "@deck.gl/mapbox": "8.7.8",
+    "@deck.gl/mesh-layers": "8.7.8",
+    "@luma.gl/constants": "8.5.10",
+    "@luma.gl/core": "8.5.10",
     "@mapbox/mapbox-gl-draw": "^1.1.2",
     "@math.gl/web-mercator": "^3.3.1",
     "@next/bundle-analyzer": "^10.0.7",
@@ -14,9 +22,10 @@
     "@reduxjs/toolkit": "^1.5.1",
     "@tailwindcss/line-clamp": "^0.3.1",
     "@tailwindcss/typography": "^0.5.0",
-    "@vizzuality/layer-manager": "^4.0.1",
-    "@vizzuality/layer-manager-plugin-mapboxgl": "^1.0.1",
-    "@vizzuality/layer-manager-provider-carto": "^1.0.1",
+    "@vizzuality/layer-manager": "4.2.0",
+    "@vizzuality/layer-manager-layers-deckgl": "1.2.0",
+    "@vizzuality/layer-manager-plugin-mapboxgl": "1.2.0",
+    "@vizzuality/layer-manager-provider-carto": "1.2.0",
     "@vizzuality/layer-manager-react": "^1.0.1",
     "@vizzuality/layer-manager-utils": "^1.0.1",
     "@vizzuality/wysiwyg": "^3.1.4",
@@ -34,7 +43,6 @@
     "cookie-parser": "1.4.3",
     "d3-format": "^2.0.0",
     "date-fns": "^2.23.0",
-    "deck.gl": "^8.6.5",
     "express": "4.14.0",
     "express-session": "1.15.3",
     "file-saver": "^2.0.5",
@@ -43,7 +51,6 @@
     "isomorphic-fetch": "2.2.1",
     "jsonapi-serializer": "3.5.3",
     "lodash": "^4.17.21",
-    "luma.gl": "^7.3.2",
     "moment": "^2.24.0",
     "next": "12.1.6",
     "next-auth": "^3.27.0",
@@ -179,6 +186,10 @@
     "storybook:dev": "STORYBOOK_RUNNING=true start-storybook -p 6006",
     "storybook:build": "yarn storybook:styles:prod && STORYBOOK_RUNNING=true build-storybook",
     "postinstall": "husky install"
+  },
+  "resolutions": {
+    "@deck.gl/core": "8.7.8",
+    "@luma.gl/core": "8.5.10"
   },
   "engines": {
     "node": ">=14.17"

@@ -1,4 +1,4 @@
-import { Source } from '@vizzuality/layer-manager';
+import { Source, LayerType } from '@vizzuality/layer-manager';
 import type { GeoJSONSourceRaw } from 'mapbox-gl';
 
 export interface MaskLayer extends GeoJSONSourceRaw {
@@ -15,11 +15,13 @@ export interface layerConfigBodySpec {
 }
 
 export interface layerConfigSpec {
+  type: LayerType;
   render?: Render;
   source: Partial<Source>;
   [key: string]: Record<string, string | number | boolean | unknown> | string | boolean | number;
   attribution?: string;
   body?: layerConfigBodySpec;
+  deck?: any[];
 }
 
 export interface APILayerSpec {

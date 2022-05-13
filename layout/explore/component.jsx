@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import Head from 'next/head';
+import dynamic from 'next/dynamic';
+import { useRouter } from 'next/router';
 
 // components
 import Layout from 'layout/layout/layout-app';
@@ -23,7 +25,7 @@ import ExploreMyData from 'layout/explore/explore-my-data';
 import { Media } from 'lib/media';
 
 // constants
-import { EXPLORE_SECTIONS, EXPLORE_SUBSECTIONS } from './constants';
+import { EXPLORE_SECTIONS, EXPLORE_SUBSECTIONS, DATASETS_WITH_SCHEMA } from './constants';
 
 const Explore = (props) => {
   const {
@@ -38,6 +40,8 @@ const Explore = (props) => {
     stopDrawing,
     dataset: datasetData,
   } = props;
+  const { query } = useRouter();
+  const [datasetSlug] = query?.dataset || [];
   const [mobileWarningOpened, setMobileWarningOpened] = useState(true);
   const [dataset, setDataset] = useState(null);
   const handleClearPolygon = useCallback(() => {
@@ -82,6 +86,11 @@ const Explore = (props) => {
     </>
   );
 
+  const DatasetSchemaScript = useMemo(() => {
+    if (!dataset?.slug || !DATASETS_WITH_SCHEMA.includes(dataset?.slug)) return null;
+    return dynamic(() => import(`scripts/schemas/${dataset.slug.toLowerCase()}`));
+  }, [dataset]);
+
   const metadata = dataset && dataset.metadata && dataset.metadata[0];
   const infoObj = metadata && metadata.info;
   const titleSt = selected ? infoObj && infoObj.name : '';
@@ -91,7 +100,9 @@ const Explore = (props) => {
 
   return (
     <Layout title={titleSt} description={descriptionSt} className="-fullscreen" isFullScreen>
+      {DatasetSchemaScript && <DatasetSchemaScript />}
       <Head>
+        {datasetSlug && <meta name="test" content="testing" />}
         {/* unpublished datasets are not indexed by search engines but still accessible in the application */}
         {datasetData && !datasetData?.published && <meta name="robots" content="noindex, follow" />}
         {/* adds canonical url to avoid content duplicity between pages with dataset slug and ID */}
